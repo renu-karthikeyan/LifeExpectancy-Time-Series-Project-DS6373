@@ -1,0 +1,113 @@
+﻿Country,Country Code,Region,Income Group,Year,Life Expectancy,GDP,Population
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1960,57.06563415,13040000000,36268055
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1961,57.65614634,14160000000,37439317
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1962,58.1802439,15200000000,38683283
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1963,58.64290244,16960000000,39982118
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1964,59.05558537,20080000000,41333878
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1965,59.43370732,21840000000,42737991
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1966,59.79321951,24320000000,44180437
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1967,60.15153659,26560000000,45656963
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1968,60.52309756,29360000000,47170337
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1969,60.91936585,32480000000,48714394
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1970,61.3502439,35520000000,50289306
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1971,61.81917073,39200000000,51897675
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1972,62.31765854,45200000000,53543436
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1973,62.83782927,55280000000,55228203
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1974,63.37426829,72000000000,56945880
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1975,63.92014634,88000000000,58691882
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1976,64.46860976,88875923765,60452543
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1977,65.01282927,81912018784,62262505
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1978,65.54592683,1.03E+11,64123997
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1979,66.06302439,1.35E+11,65972912
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1980,66.56021951,2.06E+11,67705186
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1981,67.03704878,2.64E+11,69233769
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1982,67.49592683,1.85E+11,70656783
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1983,67.94078049,1.56E+11,72080310
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1984,68.37202439,1.84E+11,73489654
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1985,68.79260976,1.95E+11,74872006
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1986,69.20343902,1.35E+11,76224365
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1987,69.60741463,1.48E+11,77553504
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1988,70.00648781,1.82E+11,78892015
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1989,70.40158537,2.21E+11,80233749
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1990,70.79573171,2.61E+11,81720428
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1991,71.19097561,3.13E+11,83351595
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1992,71.58582927,3.63E+11,84993164
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1993,71.97782927,5.30E+11,86648447
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1994,72.36385366,5.54E+11,88314424
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1995,72.73978049,3.80E+11,89969572
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1996,73.09890244,4.32E+11,91586555
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1997,73.43714634,5.23E+11,93183094
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1998,73.75141463,5.57E+11,94767284
+Mexico,MEX,Latin America & Caribbean,Upper middle income,1999,74.0392439,6.31E+11,96334810
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2000,74.29973171,7.42E+11,97873442
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2001,74.53348781,7.96E+11,99394288
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2002,74.74470732,8.11E+11,100917081
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2003,74.9375122,7.66E+11,102429341
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2004,75.11548781,8.19E+11,103945813
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2005,75.28209756,9.18E+11,105442402
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2006,75.43878049,1.02E+12,106886790
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2007,75.58792683,1.10E+12,108302973
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2008,75.73246342,1.16E+12,109684489
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2009,75.87741463,9.43E+11,111049428
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2010,76.02678049,1.11E+12,112532401
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2011,76.18565854,1.23E+12,114150481
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2012,76.35409756,1.26E+12,115755909
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2013,76.53265854,1.33E+12,117290686
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2014,76.72185366,1.36E+12,118755887
+Mexico,MEX,Latin America & Caribbean,Upper middle income,2015,76.92068293,1.21E+12,120149897
+United States,USA,North America,High income,1960,69.77073171,5.43E+11,180671000
+United States,USA,North America,High income,1961,70.27073171,5.63E+11,183691000
+United States,USA,North America,High income,1962,70.1195122,6.05E+11,186538000
+United States,USA,North America,High income,1963,69.91707317,6.39E+11,189242000
+United States,USA,North America,High income,1964,70.16585366,6.86E+11,191889000
+United States,USA,North America,High income,1965,70.21463415,7.44E+11,194303000
+United States,USA,North America,High income,1966,70.21219512,8.15E+11,196560000
+United States,USA,North America,High income,1967,70.56097561,8.62E+11,198712000
+United States,USA,North America,High income,1968,69.95121951,9.43E+11,200706000
+United States,USA,North America,High income,1969,70.50731707,1.02E+12,202677000
+United States,USA,North America,High income,1970,70.80731707,1.07E+12,205052000
+United States,USA,North America,High income,1971,71.10731707,1.16E+12,207661000
+United States,USA,North America,High income,1972,71.15609756,1.28E+12,209896000
+United States,USA,North America,High income,1973,71.35609756,1.43E+12,211909000
+United States,USA,North America,High income,1974,71.95609756,1.55E+12,213854000
+United States,USA,North America,High income,1975,72.60487805,1.68E+12,215973000
+United States,USA,North America,High income,1976,72.85609756,1.87E+12,218035000
+United States,USA,North America,High income,1977,73.25609756,2.08E+12,220239000
+United States,USA,North America,High income,1978,73.35609756,2.35E+12,222585000
+United States,USA,North America,High income,1979,73.80487805,2.63E+12,225055000
+United States,USA,North America,High income,1980,73.6097561,2.86E+12,227225000
+United States,USA,North America,High income,1981,74.0097561,3.21E+12,229466000
+United States,USA,North America,High income,1982,74.36097561,3.34E+12,231664000
+United States,USA,North America,High income,1983,74.46341463,3.63E+12,233792000
+United States,USA,North America,High income,1984,74.56341463,4.04E+12,235825000
+United States,USA,North America,High income,1985,74.56341463,4.34E+12,237924000
+United States,USA,North America,High income,1986,74.61463415,4.58E+12,240133000
+United States,USA,North America,High income,1987,74.76585366,4.86E+12,242289000
+United States,USA,North America,High income,1988,74.76585366,5.24E+12,244499000
+United States,USA,North America,High income,1989,75.01707317,5.64E+12,246819000
+United States,USA,North America,High income,1990,75.21463415,5.96E+12,249623000
+United States,USA,North America,High income,1991,75.36585366,6.16E+12,252981000
+United States,USA,North America,High income,1992,75.61707317,6.52E+12,256514000
+United States,USA,North America,High income,1993,75.4195122,6.86E+12,259919000
+United States,USA,North America,High income,1994,75.6195122,7.29E+12,263126000
+United States,USA,North America,High income,1995,75.62195122,7.64E+12,266278000
+United States,USA,North America,High income,1996,76.02682927,8.07E+12,269394000
+United States,USA,North America,High income,1997,76.42926829,8.58E+12,272657000
+United States,USA,North America,High income,1998,76.58048781,9.06E+12,275854000
+United States,USA,North America,High income,1999,76.58292683,9.63E+12,279040000
+United States,USA,North America,High income,2000,76.63658537,1.03E+13,282162411
+United States,USA,North America,High income,2001,76.83658537,1.06E+13,284968955
+United States,USA,North America,High income,2002,76.93658537,1.09E+13,287625193
+United States,USA,North America,High income,2003,77.03658537,1.15E+13,290107933
+United States,USA,North America,High income,2004,77.48780488,1.22E+13,292805298
+United States,USA,North America,High income,2005,77.48780488,1.30E+13,295516599
+United States,USA,North America,High income,2006,77.68780488,1.38E+13,298379912
+United States,USA,North America,High income,2007,77.98780488,1.45E+13,301231207
+United States,USA,North America,High income,2008,78.03902439,1.48E+13,304093966
+United States,USA,North America,High income,2009,78.3902439,1.45E+13,306771529
+United States,USA,North America,High income,2010,78.54146342,1.50E+13,309327143
+United States,USA,North America,High income,2011,78.64146342,1.56E+13,311583481
+United States,USA,North America,High income,2012,78.74146342,1.63E+13,313877662
+United States,USA,North America,High income,2013,78.74146342,1.68E+13,316059947
+United States,USA,North America,High income,2014,78.74146342,1.76E+13,318386329
+United States,USA,North America,High income,2015,78.74146342,1.82E+13,320738994
