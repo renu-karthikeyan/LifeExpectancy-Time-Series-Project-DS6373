@@ -1,0 +1,871 @@
+---
+title: "Life Expectancy Time Series Project"
+author: "Renu Karthikeyan & Timothy Cabaza"
+date: "April 2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Loading in necessary libraries
+
+```{r}
+library(tswge)
+library(tseries)
+library(nnfor)
+library(forecast)
+library(vars)
+library(dplyr)
+library(tidyverse)
+library(tswge)
+library(tidyr)
+library(tswge)
+library(tseries)
+library(GGally)
+```
+
+## Loading in data & checking for any missing values, and splitting into Mexico & US
+
+```{r}
+# LifeExpectancy=read.csv(file.choose())
+setwd("~/Desktop")
+LifeExpectancy<-read.csv("/Users/tmc/Desktop/MS_SMU_Admin/04_2024_Spring/Time_Series_DS6373/12_Project_Assigned/renu_files/LifeExpectancy Updated Dataset.csv",header=T)
+LifeExpectancy=subset(LifeExpectancy[1:8])
+head(LifeExpectancy)
+
+is.na(LifeExpectancy$Life.Expectancy)
+is.na(LifeExpectancy$GDP)
+is.na(LifeExpectancy$Population)
+
+Mexico=subset(LifeExpectancy,Country=="Mexico")
+UnitedStates=subset(LifeExpectancy,Country=="United States")
+```
+
+# Looking at life expectancy, GDP, Population for Mexico & US 
+```{r}
+plotts.sample.wge(Mexico$Life.Expectancy)
+plotts.sample.wge(UnitedStates$Life.Expectancy)
+
+plotts.sample.wge(Mexico$GDP)
+plotts.sample.wge(UnitedStates$GDP)
+
+plotts.sample.wge(Mexico$Population)
+plotts.sample.wge(UnitedStates$Population)
+```
+Both countries seem to show slight wandering upward trending Life Expectancy realizations. ACFs are slowly dampening and the Parzen spectral densities have peaks at 0 indicating that the realization is wandering
+
+Both countries seem to have upward trending GDP, it looks like the right half of a parabolic curve (may possibly indicate a quadratic root). The ACFs are slowly dampening, and there is a peak at 0.0 Frequency implying that it is wandering
+
+The realization for Population seems to be linear for both Mexico and the United States. Like the ACFs and Spectral density for GDP & Life Expectancy, population follows the same pattern of slowly dampening ACFs and peaks near 0 for Spectral Density. 
+
+# Identifying and Fitting Univariate ARMA models for Mexico & US
+```{r}
+#did AR Models initially, but thought ARMA would be better
+aic5.ar.wge(Mexico$Life.Expectancy,p=0:10,type="bic",method="burg")
+aic5.ar.wge(UnitedStates$Life.Expectancy,p=0:10,type="aic",method="burg")
+
+aic5.wge(Mexico$Life.Expectancy,p=0:10,q=0:5,type="bic") #top suggestion is an ARMA(5,2), ARMA (5,4)
+aic5.wge(UnitedStates$Life.Expectancy,p=0:10,q=0:5,type="bic") #top suggestion is an ARMA(7,1), ARMA(4,0)
+
+M_ARMA1=est.arma.wge(Mexico$Life.Expectancy,p=5,q=2)
+M_ARMA2=est.arma.wge(Mexico$Life.Expectancy,p=5,q=4)
+
+US_ARMA1=est.arma.wge(UnitedStates$Life.Expectancy,p=7,q=1)
+US_ARMA2=est.arma.wge(UnitedStates$Life.Expectancy,p=4)
+```
+Mexico Model's respective factor table observations: 
+
+- Model 1 and 2 have 2 imaginary roots in the AR side. 2 roots on AR side with absolute reciprocals of 1, system frequency has peaks close to 0. 
+
+- Model 2 has an imaginary root in the MA side. 2 roots on AR side with absolute reciprocals close to 1, system frequency has peaks closer to 0, indicating wandering behavior
+
+US Model's respective factor table observations: 
+
+- Model 1 has 3 imaginary roots in the AR side. Model 1 AR side has 2 roots with absolute reciprocals closer to 1, indicating possible wandering behavior
+
+- Model 2 has an imaginary root in the AR side. Model 2’s AR side, has 2 roots that have roots closer to 1, indicating possible wandering behavior; there are also peaks at the spectral density at 0. 
+
+
+# Forecasting with the fitted ARMA models for each respective country
+Choosing short horizon of 5 and long horizon of 10 for Forecasting
+
+## Mexico
+```{r}
+#Short & Long term Forecast with ASE & RMSE Model 1
+SF_M1=fore.arma.wge(Mexico$Life.Expectancy,phi=M_ARMA1$phi,theta=M_ARMA1$theta,n.ahead = 5,lastn=T,limits=T)
+ASE=mean((Mexico$Life.Expectancy[52:56]-SF_M1$f)^2)
+ASE #7.811939e^-5
+
+roll.win.rmse.wge(Mexico$Life.Expectancy,horizon=5,phi=M_ARMA1$phi,theta=M_ARMA1$theta) #.05
+
+LF_M1=fore.arma.wge(Mexico$Life.Expectancy,phi=M_ARMA1$phi,theta=M_ARMA1$theta,n.ahead = 10,lastn=T,limits=T)
+ASE=mean((Mexico$Life.Expectancy[47:56]-LF_M1$f)^2)
+ASE #0.007747863
+
+roll.win.rmse.wge(Mexico$Life.Expectancy,horizon=10,phi=M_ARMA1$phi,theta=M_ARMA1$theta) #.269
+
+
+#Short & Long term Forecast with ASE & RMSE Model 2
+
+SF_M2=fore.arma.wge(Mexico$Life.Expectancy,phi=M_ARMA2$phi,theta=M_ARMA2$theta,n.ahead=5,lastn=T,limits=T)
+ASE=mean((Mexico$Life.Expectancy[52:56]-SF_M2$f)^2)
+ASE #0.00011528
+
+roll.win.rmse.wge(Mexico$Life.Expectancy,horizon=5,phi=M_ARMA2$phi,theta=M_ARMA2$theta) #.033
+
+LF_M2=fore.arma.wge(Mexico$Life.Expectancy,phi=M_ARMA2$phi,theta=M_ARMA2$theta,n.ahead=10,lastn=T,limits=T)
+ASE=mean((Mexico$Life.Expectancy[47:56]-LF_M2$f)^2)
+ASE #0.004462134
+
+roll.win.rmse.wge(Mexico$Life.Expectancy,horizon=10,phi=M_ARMA2$phi,theta=M_ARMA2$theta) #.181
+```
+
+
+
+## United States
+```{r}
+#Short & long term Forecast with ASE & RMSE Model 1
+SF_U1=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_ARMA1$phi,theta=US_ARMA1$theta,n.ahead = 5,lastn=T,limits=T)
+ASE=mean((UnitedStates$Life.Expectancy[52:56]-SF_U1$f)^2)
+ASE #0.03084328
+
+roll.win.rmse.wge(UnitedStates$Life.Expectancy,horizon=5,phi=US_ARMA1$phi,theta=US_ARMA1$theta) #.355
+
+LF_U1=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_ARMA1$phi,theta=US_ARMA1$theta,n.ahead = 10,lastn=T,limits=T)
+ASE=mean((UnitedStates$Life.Expectancy[47:56]-LF_U1$f)^2)
+ASE #0.2926274
+
+roll.win.rmse.wge(UnitedStates$Life.Expectancy,horizon=10,phi=US_ARMA1$phi,theta=US_ARMA1$theta) #.633
+
+#Short & long term Forecast with ASE & RMSE Model 2 
+
+SF_U2=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_ARMA2$phi,theta=US_ARMA2$theta,n.ahead=5,lastn=T,limits=T)
+ASE=mean((UnitedStates$Life.Expectancy[52:56]-SF_U2$f)^2)
+ASE # 0.01653549
+
+roll.win.rmse.wge(UnitedStates$Life.Expectancy,horizon=5,phi=US_ARMA2$phi,theta=US_ARMA2$theta) #.399
+
+LF_U2=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_ARMA2$phi,theta=US_ARMA2$theta,n.ahead=10,lastn=T,limits=T)
+ASE=mean((UnitedStates$Life.Expectancy[47:56]-LF_U2$f)^2)
+ASE #0.4274855
+
+roll.win.rmse.wge(UnitedStates$Life.Expectancy,horizon=10,phi=US_ARMA2$phi,theta=US_ARMA2$theta) #.745
+```
+
+# Differencing data to see if there is a noticeable change
+Domain knowledge tells us that Life expectancy does not drastically change year over year. It changes when looking at a 5 year period, so on and so forth. Visually inspecting the plotts.sample.wge output above, there is no indication of seasonality. 
+
+Mexico Differenced data, the ACF does not seem to show white noise. However, United States, the ACF shows white noise. Both differenced data models do not seem to forecast as well as the above ARMA models. 
+
+```{r}
+#MEXICO
+MexicoD1=artrans.wge(Mexico$Life.Expectancy,phi.tr=1)
+acf(MexicoD1) #doesnt look to be white noise
+aic5.wge(MexicoD1,p=0:5,q=0:2,type="bic") # top suggestion is an AR(3) according to AIC & BIC
+M_Diff_AR=est.ar.wge(MexicoD1,p=3)
+#getting: Warning: possible convergence problem: optim gave code = 1 
+M_Diff_F_Short=fore.arma.wge(Mexico$Life.Expectancy,phi=M_Diff_AR$phi,n.ahead=5,lastn=T,limits=T)
+M_Diff_F_Long=fore.arma.wge(Mexico$Life.Expectancy,phi=M_Diff_AR$phi,n.ahead=10,lastn=T,limits=T)
+
+#UNITED STATES
+USD1=artrans.wge(UnitedStates$Life.Expectancy,phi.tr=1)
+acf(USD1) #doesnt look to be white noise
+aic5.wge(USD1,p=0:5,q=0:2,type="bic") # top suggestion is an AR(1) according to AIC & BIC
+US_Diff_AR=est.ar.wge(USD1,p=1)
+#getting: Warning: possible convergence problem: optim gave code = 1 
+US_Diff_F_Short=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_Diff_AR$phi,n.ahead=5,lastn=T,limits=T)
+US_Diff_F_Long=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_Diff_AR$phi,n.ahead=10,lastn=T,limits=T)
+```
+
+Of the Univariate ARMA Models, the second model is better for Mexico - ARMA (5,4). For the United States, the first model, ARMA(7,1) is better. The optimal most useful models were selected using ASE.
+
+
+# 10 iteration Spectral Densities of the most useful ARMA models
+Mexico:
+```{r}
+LF_M2=fore.arma.wge(Mexico$Life.Expectancy,phi=M_ARMA2$phi,theta=M_ARMA2$theta,n.ahead=10,lastn=T,limits=T)
+ASE=mean((Mexico$Life.Expectancy[47:56]-LF_M2$f)^2)
+ASE #0.004462134
+
+#Compare Spectral Densities
+sims = 10
+SpecDen = parzen.wge(Mexico$Life.Expectancy, plot = "FALSE")
+plot(SpecDen$freq,SpecDen$pzgram, type = "l", lwd = 6)
+
+for( i in 1: sims)
+{
+   SpecDen2 = parzen.wge(gen.arma.wge(length(Mexico$Life.Expectancy),phi=M_ARMA2$phi,theta=M_ARMA2$theta,plot=F),plot = FALSE)
+   lines(SpecDen2$freq,SpecDen2$pzgram, lwd = 2, col = "red")
+}
+
+```
+United States:
+```{r}
+LF_U1=fore.arma.wge(UnitedStates$Life.Expectancy,phi=US_ARMA1$phi,theta=US_ARMA1$theta,n.ahead = 10,lastn=T,limits=T)
+ASE=mean((UnitedStates$Life.Expectancy[47:56]-LF_U1$f)^2)
+ASE #0.2926274
+
+#Compare Spectral Densities
+sims = 10
+SpecDen = parzen.wge(UnitedStates$Life.Expectancy, plot = "FALSE")
+plot(SpecDen$freq,SpecDen$pzgram, type = "l", lwd = 6)
+
+for( i in 1: sims)
+{
+   SpecDen2 = parzen.wge(gen.arma.wge(length(Mexico$Life.Expectancy),phi=US_ARMA1$phi,theta=US_ARMA1$theta,plot=F),plot = FALSE)
+   lines(SpecDen2$freq,SpecDen2$pzgram, lwd = 2, col = "red")
+}
+
+```
+
+# MLP model for Mexico (not used, as set.seed was not used)
+```{r}
+#short term fcst
+MexicoTrain=ts(Mexico$Life.Expectancy[1:51])
+MexicoVar=data.frame(GDP = ts(Mexico$GDP), Pop = ts(Mexico$Population))
+fit=mlp(MexicoTrain,xreg=MexicoVar)
+f=forecast(fit,h=5,xreg=MexicoVar)
+plot(Mexico$Life.Expectancy[52:56],type="l")
+lines(seq(1,5),f$mean,col="purple")
+ASE=mean((Mexico$Life.Expectancy[52:56]-f$mean)^2)
+ASE #0.0003446278
+
+#long term fcst
+MexicoTrain=ts(Mexico$Life.Expectancy[1:46])
+MexicoVar=data.frame(GDP = ts(Mexico$GDP), Pop = ts(Mexico$Population))
+fit=mlp(MexicoTrain,xreg=MexicoVar)
+f=forecast(fit,h=10,xreg=MexicoVar)
+plot(Mexico$Life.Expectancy[47:56],type="l")
+lines(seq(1,10),f$mean,col="purple")
+ASE=mean((Mexico$Life.Expectancy[47:56]-f$mean)^2)
+ASE #0.02413821
+```
+
+
+# MLP model for United States (not used, as set.seed was not used)
+```{r}
+
+#short term fcst
+USTrain=ts(UnitedStates$Life.Expectancy[1:51])
+USVar=data.frame(GDP = ts(UnitedStates$GDP), Pop = ts(UnitedStates$Population))
+fit=mlp(USTrain,xreg=USVar)
+f=forecast(fit,h=5,xreg=USVar)
+plot(UnitedStates$Life.Expectancy[52:56],type="l")
+lines(seq(1,5),f$mean,col="purple")
+ASE=mean((UnitedStates$Life.Expectancy[52:56]-f$mean)^2)
+ASE #0.5191963
+
+#long term fcst
+USTrain=ts(UnitedStates$Life.Expectancy[1:46])
+USVar=data.frame(GDP = ts(UnitedStates$GDP), Pop = ts(UnitedStates$Population))
+fit=mlp(USTrain,xreg=USVar)
+f=forecast(fit,h=10,xreg=USVar)
+plot(UnitedStates$Life.Expectancy[47:56],type="l")
+lines(seq(1,10),f$mean,col="purple")
+ASE=mean((UnitedStates$Life.Expectancy[47:56]-f$mean)^2)
+ASE #0.1066129
+
+```
+
+
+# VAR Mexico Short-Term 5 year 
+```{r}
+# Short Term 
+Mexico
+Mex_small = Mexico[1:51,] # first 47, predict next 10 years for forecast 
+Mex_small
+pop_Mex = Mex_small$Population
+gdp_Mex = Mex_small$GDP
+life_Mex = Mex_small$Life.Expectancy
+hist(life_Mex)
+hist(pop_Mex)
+hist(gdp_Mex)
+# Create dataframe for MLP model
+tsMex_dataframe = data.frame(pop_Mex, gdp_Mex, life_Mex) # all years in a dataframe use for xreg 
+tsMex_dataframe
+ggpairs(data=tsMex_dataframe)
+# Mex VAR 
+x_Mex = cbind(gdp_Mex,life_Mex, pop_Mex)
+VAR_Mex = VARselect(x_Mex,lag.max = 8, type = "const") 
+VAR_Mex # AIC score selects phi=4
+fit=VAR(x_Mex,p=4,type='const') # use phi=4, takes at 4 lags to see life expectancy 
+fit$p
+# summary(lsfit) # didnt work singularity - possible multi-collinaearity between varaibles 
+preds=predict(fit,n.ahead=5) 
+preds
+life.mex.f=preds$fcst$life_Mex[,1]
+life.mex.f
+t=1:56 
+t
+year=t+1960
+year # 56 years 
+length(year)# Mexico Life.Expectancy forecast for last 5 years
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(50,100))  
+points(year[51:56],c(Mexico$Life.Expectancy[51],life.mex.f),type='o',cex=1,pch=1, col='red') # we use 51-56 here since and then we use the actual value at 51 followed by the 5 forecasts 
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2009,2016),ylim=c(75,77))  # zoom in on the plot so we can see the points 
+points(year[51:56],c(Mexico$Life.Expectancy[51],life.mex.f),type='o',cex=1,pch=1, col='red')
+
+ASE = mean((Mexico$Life.Expectancy[52:56] - preds$fcst$life_Mex[1:5])^2) # ASE for the last 5 years 
+ASE #  0.002455944
+
+RMSE_VAR=sqrt(mean((Mexico$Life.Expectancy[52:56]-preds$fcst$life_Mex[,1][1:5])^2)) # RMSE for the last 10 years 
+RMSE_VAR # 0.04955748
+
+```
+
+Consider the correlated variables and data spread.
+Not a lot of difference in GDP year to year.
+
+Perhaps to improve for NN model accuracy scores the data could be scaled, however we will proceed with the data as is.
+
+Given that our model variables are highly correlated, it was hypothesized that the VAR models may perform well. 
+
+Using VARSelects suggestion, a lag of 4 is utilized for the short term and a long term lag of 7.
+
+Here we see the VAR models respective estimated coefficients for both short and long term. 
+
+
+SHORT TERM:
+
+The forecasts for the short term at first seem to nearly overlap, on further inspection the short term 10th order VAR model is performing quite well. It does trail lower for the final two predictions.
+
+# VAR Mexico Long-Term 10 year 
+```{r}
+Mexico
+# Long Term  10 Year 
+# Mexico Data 
+Mex_small = Mexico[1:46,] # first 47, predict next 10 years for forecast 
+Mex_small
+pop_Mex = Mex_small$Population
+gdp_Mex = Mex_small$GDP
+life_Mex = Mex_small$Life.Expectancy
+# Mex VAR 
+x_Mex = cbind(gdp_Mex,life_Mex, pop_Mex)
+VAR_Mex = VARselect(x_Mex,lag.max = 8, type = "const") 
+VAR_Mex
+fit=VAR(x_Mex,p=7,type='const') # VAR select lowest AIC selects 7 lags to see life expectancy 
+fit$p
+# summary(lsfit) # didnt work singularity - possible multi-collinaearity between varaibles 
+preds=predict(fit,n.ahead=10) 
+preds
+life.mex.f=preds$fcst$life_Mex[,1]
+life.mex.f
+t=1:56 
+t
+year=t+1960
+year # 56 years 
+length(year)# Mexico Life.Expectancy forecast for last 10 years
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(50,100))  
+points(year[46:56],c(Mexico$Life.Expectancy[46],life.mex.f),type='o',cex=1,pch=1, col='red') # we use 46-56 here since and then we use the actual value at 46 followed by the 10 forecasts 
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005,2016),ylim=c(75,77))  # zoom in on the plot so we can see the points 
+points(year[46:56],c(Mexico$Life.Expectancy[46],life.mex.f),type='o',cex=1,pch=1, col='red')
+
+ASE = mean((Mexico$Life.Expectancy[47:56] - preds$fcst$life_Mex[1:10])^2) # ASE for the last 10 years 
+ASE #  0.02099135
+
+RMSE_VAR=sqrt(mean((Mexico$Life.Expectancy[47:56]-preds$fcst$life_Mex[,1][1:10])^2)) # RMSE for the last 10 years 
+RMSE_VAR # 0.1448839
+
+```
+LONG-TERM: 
+
+The forecasts for the long term 10th order VAR Model again similar to the short term forecast able to predict rather accurately the the first  few years and again trails consistenly lower as predictions get further out in time. 
+
+Assessment: 
+
+The Var models for both long and short term forecasting were useful to detect the relationship between the data, and enhanced the forecasts the following ASE scores with the short term, forecasted model having a lower ASE. The short term 10th Order Var model appears to be more useful at predicting life-expectancy compared to a long-term forecast. However we can possibly do better with other modeling techniques. 
+
+
+# VAR United States Short-Term 5 Year 
+```{r}
+
+# Short Term 
+UnitedStates 
+US_small = UnitedStates[1:51,] # first 46, predict next 10 years for forecast 
+US_small
+pop_US = US_small$Population
+gdp_US = US_small$GDP
+life_US = US_small$Life.Expectancy
+life_US
+hist(life_US)
+hist(pop_US)
+hist(gdp_US)
+# Mex VAR 
+ggpairs(data=tsMex_dataframe)
+X_US = cbind(pop_US,gdp_US,life_US)
+x_Mex = cbind(gdp_Mex,life_Mex, pop_Mex)# all variables highly correlated
+VAR_US = VARselect(cbind(pop_US,gdp_US,life_US),lag.max = 10, type = "both") 
+VAR_US
+fit_US =VAR(X_US,p=10,type='const') # use phi=10
+fit_US$varresult
+fit_US$p
+fit_US$K
+# summary(lsfit)
+preds_US=predict(fit_US,n.ahead=5) 
+preds_US$fcst
+life.US.f=preds_US$fcst$life_US[,1]
+life.US.f
+t=1:56 
+year=t+1960
+year # 56 years 
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(60,100))  # 5 year 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],life.US.f),type='o',cex=1,pch=1, col='blue') # 6 years selected, the first actual observeration at index 51, followed by the 5 year forecast values 
+
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5, xlim=c(2005,2016), ylim=c(75,80))  # 10 year zoom in 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],life.US.f),type='o',cex=1,pch=1, col='blue') 
+
+
+ASE = mean((UnitedStates$Life.Expectancy[52:56] - preds_US$fcst$life_US[1:5])^2)
+ASE # 0.4878381
+RMSE_VAR=sqrt(mean((UnitedStates$Life.Expectancy[52:56]-preds_US$fcst$life_US[,1][1:5])^2))
+RMSE_VAR # 0.6984541
+
+```
+Consider the correlated variables and data spread.
+Not a lot of difference in GDP year to year.
+To perhaps to improve for NN model the data could be scaled. 
+Given that our model variables are highly correlated, it was hypothesized that the VAR models may perform well.
+
+The forecasts for the short and long term Var Models for United States. 
+
+SHORT TERM: 
+
+The forecasts for the short term at first seem to nearly overlap, but on further inspection we see that the predictions were consistently lower for the first three years, and wandered higher for the last two years forecasted. 
+
+
+
+# VAR United States Long-Term 10 year 
+```{r}
+# Long Term 
+UnitedStates 
+
+US_small = UnitedStates[1:46,] # first 46, predict next 10 years for forecast 
+US_small
+pop_US = US_small$Population
+gdp_US = US_small$GDP
+life_US = US_small$Life.Expectancy
+life_US
+X_US = cbind(pop_US,gdp_US,life_US)
+VAR_US = VARselect(cbind(pop_US,gdp_US,life_US),lag.max = 10, type = "both") 
+VAR_US
+fit_US =VAR(X_US,p=10,type='const') # use phi=10
+fit_US$varresult
+fit_US$p
+fit_US$K
+# summary(lsfit)
+preds_US=predict(fit_US,n.ahead=10) 
+preds_US$fcst
+life.US.f=preds_US$fcst$life_US[,1]
+life.US.f
+t=1:56 
+year=t+1960
+year # 56 years 
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(60,100))  # 10 year 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],life.US.f),type='o',cex=1,pch=1, col='blue') 
+
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5, xlim=c(2005,2016), ylim=c(75,80))  # 10 year zoom in 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],life.US.f),type='o',cex=1,pch=1, col='blue') 
+
+
+ASE = mean((UnitedStates$Life.Expectancy[47:56] - preds_US$fcst$life_US[1:10])^2)
+ASE # 0.7036564
+RMSE_VAR=sqrt(mean((UnitedStates$Life.Expectancy[47:56]-preds_US$fcst$life_US[,1][1:10])^2))
+RMSE_VAR # 0.8388423
+
+```
+
+LONG-TERM: 
+
+The forecasts for the long term 10th order VAR Model again similar to the short term forecast able to predict rather accurately the the first three years, but the next 8 oscillate high then low before rising again.  
+
+Assessment: 
+
+The Var models for both long and short term forecasting were useful to detect the relationship between the data, and enhanced the forecasts and had an ASE the following ASE scores with the short term, forecasted model having a lower ASE. The short term 10th Order Var model appears to be more useful at predicting life-expectancy compared to a long-term forecast. However we can possibly do better with other modeling techniques. 
+
+
+# MLP Mexico Short Term 5 year 
+```{r}
+# Short Term 5 year
+MexicoTrain=ts(Mexico$Life.Expectancy[1:51])
+MexicoVar=data.frame(GDP = ts(Mexico$GDP), Pop = ts(Mexico$Population))
+set.seed(2)
+fit=mlp(MexicoTrain,xreg=MexicoVar)
+f=forecast(fit,h=5,xreg=MexicoVar)
+
+f$mean
+
+# plot(Mexico$Life.Expectancy[47:57],type = "o") 
+# lines(seq(1,10),f$mean, col = "blue")
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(57,77))  # 5 year 
+points(year[51:56],c(Mexico$Life.Expectancy[51],f$mean),type='o',cex=1,pch=1, col="red") 
+
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5, xlim=c(2010,2016), ylim=c(75,77))  # 5 year zoom in 
+points(year[51:56],c(Mexico$Life.Expectancy[51],f$mean),type='o',cex=1,pch=1, col='red') 
+
+ASE = mean((Mexico$Life.Expectancy[52:56]-f$mean)^2) 
+ASE # 0.005730392
+
+RMSE=sqrt(mean((Mexico$Life.Expectancy[52:56]-f$mean[1:5])^2))
+RMSE # 0.07569935
+
+```
+Another model we tried was the Multilayer perceptron, using the mlp function in the nnfor package.
+
+SHORT TERM: Again similar to the previous VAR Model selected, the MLP is able to predict the first three years well and trails off lower as it approaches the 5th year forecast. 
+
+
+# MLP Mexico Short Term 10 year 
+```{r}
+# Long Term 10 year
+MexicoTrain=ts(Mexico$Life.Expectancy[1:46])
+MexicoVar=data.frame(GDP = ts(Mexico$GDP), Pop = ts(Mexico$Population))
+set.seed(2)
+fit=mlp(MexicoTrain,xreg=MexicoVar)
+f=forecast(fit,h=10,xreg=MexicoVar)
+f$mean
+
+# plot(Mexico$Life.Expectancy[47:57],type = "o") 
+# lines(seq(1,10),f$mean, col = "blue")
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(57,77))  # 10 year 
+points(year[46:56],c(Mexico$Life.Expectancy[46],f$mean),type='o',cex=1,pch=1, col="red") 
+
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5, xlim=c(2005,2016), ylim=c(75,78))  # 10 year zoom in 
+points(year[46:56],c(Mexico$Life.Expectancy[46],f$mean),type='o',cex=1,pch=1, col='red') 
+
+ASE = mean((Mexico$Life.Expectancy[47:56]-f$mean)^2) 
+ASE # 0.02526074
+
+RMSE=sqrt(mean((Mexico$Life.Expectancy[47:56]-f$mean[1:10])^2))
+RMSE # 0.1589363
+
+```
+
+LONG TERM: Here its interesting, that in the short term forecasts it trailed lower than the actual values for life expectancy on the 4th and 5th year, in the long term forecast the MLP model  trails slightly higher than the actual values from years 2-10. 
+
+Overall both short and long term models appear to be useful with low ASE for a 5 year forecast, lower than that of the long-term forecast ASE. 
+
+# MLP United States Short-term 5 year 
+```{r}
+# Short Term 5 year 
+USTrain=ts(UnitedStates$Life.Expectancy[1:51])
+USVar=data.frame(GDP = ts(UnitedStates$GDP), Pop = ts(UnitedStates$Population))
+set.seed(2)
+fit=mlp(USTrain,xreg=USVar)
+f=forecast(fit,h=5,xreg=USVar)
+# plot(Mexico$Life.Expectancy[47:57],type = "o") 
+# lines(seq(1,10),f$mean, col = "blue")
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(65,80))  # 5 year 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],f$mean),type='o',cex=1,pch=1, col="blue") 
+
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5, xlim=c(2010,2016), ylim=c(77,80))  # 5 year zoom in 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],f$mean),type='o',cex=1,pch=1, col='blue') 
+
+ASE = mean((UnitedStates$Life.Expectancy[52:56]-f$mean)^2) 
+ASE # 0.4465622
+
+RMSE=sqrt(mean((UnitedStates$Life.Expectancy[52:56]-f$mean[1:5])^2))
+RMSE # 0.6682531
+```
+
+Another model we tried was the Multilayer perceptron, using the mlp function in the nnfor package.
+
+SHORT TERM: Almost immediately the MLP prediction are higher than that of the actual values and seem to be wandering higher 
+
+# MLP United States Long-term 10 year 
+```{r}
+# Long Term 10 year
+USTrain=ts(UnitedStates$Life.Expectancy[1:46])
+USVar=data.frame(GDP = ts(UnitedStates$GDP), Pop = ts(UnitedStates$Population))
+set.seed(2)
+fit=mlp(USTrain,xreg=USVar)
+f=forecast(fit,h=10,xreg=USVar)
+# plot(Mexico$Life.Expectancy[47:57],type = "o") 
+# lines(seq(1,10),f$mean, col = "blue")
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(65,80))  # 10 year 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],f$mean),type='o',cex=1,pch=1, col="blue") 
+
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5, xlim=c(2005,2016), ylim=c(77,80))  # 10 year zoom in 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],f$mean),type='o',cex=1,pch=1, col='blue') 
+
+ASE = mean((UnitedStates$Life.Expectancy[47:56]-f$mean)^2) 
+ASE # 0.07298946
+
+RMSE=sqrt(mean((UnitedStates$Life.Expectancy[47:56]-f$mean[1:10])^2))
+RMSE # 0.2701656
+```
+
+LONG TERM: On a longer time frame, the forecasts seems to capture the trend of the actual observations while not exactly hitting the actual values, but two predicted values were nearly spot on. 
+
+Overall the short-term model does not appear to be useful. The long-term model however seems quite useful and capturing the data. This is reflected in the ASEs, long-term ASE significantly lower than that of the short term model. 
+
+# Ensemble: MLP & VAR Mexico Short Term 5 year 
+```{r}
+# VAR Mexico Short term 5 year 
+Mexico
+# Mexico Data 
+Mex_small = Mexico[1:51,] # first 51, predict next 5 years for forecast 
+Mex_small
+pop_Mex = Mex_small$Population
+gdp_Mex = Mex_small$GDP
+life_Mex = Mex_small$Life.Expectancy
+# Mex VAR 
+x_Mex = cbind(gdp_Mex,life_Mex, pop_Mex)
+VAR_Mex = VARselect(x_Mex,lag.max = 8, type = "const") 
+VAR_Mex
+fit=VAR(x_Mex,p=7,type='const') # VAR select lowest AIC selects 7 lags to see life expectancy 
+fit$p
+# summary(lsfit) # didnt work singularity - possible multi-collinaearity between varaibles 
+preds=predict(fit,n.ahead=5) 
+preds
+life.mex.f=preds$fcst$life_Mex[,1]
+life.mex.f
+t=1:56 
+t
+year=t+1960
+
+#MLP Mexico Long term 10 year 
+MexicoTrain=ts(Mexico$Life.Expectancy[1:51])
+MexicoVar=data.frame(GDP = ts(Mexico$GDP), Pop = ts(Mexico$Population))
+MexicoVar
+set.seed(2)
+fit=mlp(MexicoTrain,xreg=MexicoVar)
+f=forecast(fit,h=5,xreg=MexicoVar)
+f$mean
+
+################
+f$mean # MLP long term 10 year predictions 
+life.mex.f # VAR long term 10 year predictions 
+ensemble_MEX = (life.mex.f + f$mean)/2
+ensemble_MEX
+################
+#Plot  
+################
+# all years plotted
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(50,100))
+points(year[51:56],c(Mexico$Life.Expectancy[51],ensemble_MEX),type='o',cex=1,pch=1, col='orange')
+# zoom in on predictions
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2009, 2016), ylim=c(75.8,77)) # zoom in on 10 year forecast 
+points(year[51:56],c(Mexico$Life.Expectancy[51],ensemble_MEX),type='o',cex=1,pch=1, col='orange')
+# all plotted together
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2009, 2016), ylim=c(75.8,77), main='Ensemble Mexico Short-Term 5 Year: VAR & MLP', sub='Orange ensemble preds, BLUE mlp preds, RED var preds') # zoom in on 10 year forecast 
+points(year[51:56],c(Mexico$Life.Expectancy[51],ensemble_MEX),type='o',cex=1,pch=1, col='orange')# ensemble predictions 
+points(year[51:56],c(Mexico$Life.Expectancy[51],f$mean),type='l',cex=1,pch=1, col='blue') # MLP predictions 
+points(year[51:56],c(Mexico$Life.Expectancy[51],life.mex.f),type='l',cex=1,pch=1, col='red') # VAR predictions 
+################
+
+ASE = mean((Mexico$Life.Expectancy[52:56]-ensemble_MEX)^2) 
+ASE # 0.004415432
+
+RMSE=sqrt(mean((Mexico$Life.Expectancy[52:56]-ensemble_MEX)^2))
+RMSE # 0.06644871
+
+```
+Given that the VAR and MLP models were not useless models, let’s use the combo of models to create a multivariate ensemble model to see how well it performs.
+
+
+# Ensemble: MLP & VAR Mexico Long Term 10 year 
+```{r}
+
+Mexico
+# Mexico Data 
+Mex_small = Mexico[1:46,] # first 47, predict next 10 years for forecast 
+Mex_small
+pop_Mex = Mex_small$Population
+gdp_Mex = Mex_small$GDP
+life_Mex = Mex_small$Life.Expectancy
+# Mex VAR 
+x_Mex = cbind(gdp_Mex,life_Mex, pop_Mex)
+VAR_Mex = VARselect(x_Mex,lag.max = 8, type = "const") 
+VAR_Mex
+fit=VAR(x_Mex,p=7,type='const') # VAR select lowest AIC selects 7 lags to see life expectancy 
+fit$p
+# summary(lsfit) # didnt work singularity - possible multi-collinaearity between varaibles 
+preds=predict(fit,n.ahead=10) 
+preds
+life.mex.f=preds$fcst$life_Mex[,1]
+life.mex.f
+t=1:56 
+t
+year=t+1960
+
+#MLP Mexico Long term 10 year 
+MexicoTrain=ts(Mexico$Life.Expectancy[1:46])
+MexicoVar=data.frame(GDP = ts(Mexico$GDP), Pop = ts(Mexico$Population))
+MexicoVar
+set.seed(2)
+fit=mlp(MexicoTrain,xreg=MexicoVar)
+f=forecast(fit,h=10,xreg=MexicoVar)
+f$mean
+
+################
+f$mean # MLP long term 10 year predictions 
+life.mex.f # VAR long term 10 year predictions 
+ensemble_MEX = (life.mex.f + f$mean)/2
+ensemble_MEX
+################
+#Plot  
+################
+# plotting all years 
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(50,100))
+points(year[46:56],c(Mexico$Life.Expectancy[51],ensemble_MEX),type='o',cex=1,pch=1, col='orange')
+# zooming in only on the predictions 
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005, 2016), ylim=c(75, 77)) # zoom in on 10 year forecast 
+points(year[46:56],c(Mexico$Life.Expectancy[46],ensemble_MEX),type='o',cex=1,pch=1, col='orange')
+# all plotted together
+plot(year,Mexico$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005, 2016), ylim=c(75,77), main='Ensemble Mexico Long-Term 10 Year: VAR & MLP', sub='Orange ensemble preds, BLUE mlp preds, RED var preds') # zoom in on 10 year forecast 
+points(year[46:56],c(Mexico$Life.Expectancy[46],ensemble_MEX),type='o',cex=1,pch=1, col='orange')# ensemble predictions 
+points(year[46:56],c(Mexico$Life.Expectancy[46],f$mean),type='l',cex=1,pch=1, col='blue') # MLP predictions 
+points(year[46:56],c(Mexico$Life.Expectancy[46],life.mex.f),type='l',cex=1,pch=1, col='red') # VAR predictions 
+################
+
+ASE = mean((Mexico$Life.Expectancy[47:56]-ensemble_MEX)^2) 
+ASE # 0.001717489
+
+RMSE=sqrt(mean((Mexico$Life.Expectancy[47:56]-ensemble_MEX)^2))
+RMSE # 0.04144259
+
+```
+The Mexico predictions for both short-term and long-term have very low ASEs, with the long-term forecast having the lower ASE. When we zoom in the long-term forecast using the ensemble method appears to be quite useful.
+
+# Ensemble: MLP & VAR United States Short Term 5 year 
+```{r}
+
+# VAR Short term 5 year United States 
+UnitedStates 
+
+US_small = UnitedStates[1:51,] # first 46, predict next 10 years for forecast 
+US_small
+pop_US = US_small$Population
+gdp_US = US_small$GDP
+life_US = US_small$Life.Expectancy
+life_US
+X_US = cbind(pop_US,gdp_US,life_US)
+VAR_US = VARselect(cbind(pop_US,gdp_US,life_US),lag.max = 10, type = "both") 
+VAR_US
+fit_US =VAR(X_US,p=10,type='const') # use phi=10
+fit_US$varresult
+fit_US$p
+fit_US$K
+# summary(lsfit)
+preds_US=predict(fit_US,n.ahead=5) 
+preds_US$fcst
+life.US.f=preds_US$fcst$life_US[,1]
+life.US.f
+t=1:56 
+year=t+1960
+
+# MLP Long term 10 year United States 
+USTrain=ts(UnitedStates$Life.Expectancy[1:51])
+USVar=data.frame(GDP = ts(UnitedStates$GDP), Pop = ts(UnitedStates$Population))
+set.seed(2)
+fit=mlp(USTrain,xreg=USVar)
+f=forecast(fit,h=5,xreg=USVar)
+
+################
+f$mean # MLP long term 5 year predictions 
+life.US.f # VAR long term 5 year predictions 
+ensemble_US = (life.US.f + f$mean)/2
+ensemble_US
+################
+#Plot  
+################
+# plot showing all years 
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(50,100))
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],ensemble_US),type='o',cex=1,pch=1, col='green')
+# zoomed in plot to better see the predictions 
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005, 2016), ylim=c(75,80)) # zoom in on 10 year forecast 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],ensemble_US),type='o',cex=1,pch=1, col='green')
+# ALL preds together 
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005, 2016), ylim=c(75,80), main='Ensemble US Short-Term 5 Year: VAR & MLP', sub='GREEN ensemble preds, BLUE mlp preds, RED var preds') # zoom in on 10 year forecast 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],ensemble_US),type='o',cex=1,pch=1, col='green')# ensemble predictions 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],f$mean),type='l',cex=1,pch=1, col='blue') # MLP predictions 
+points(year[51:56],c(UnitedStates$Life.Expectancy[51],life.US.f),type='l',cex=1,pch=1, col='red') # VAR predictions 
+################
+
+ASE = mean((UnitedStates$Life.Expectancy[52:56]-ensemble_US)^2) 
+ASE # 0.4065556
+
+RMSE=sqrt(mean((UnitedStates$Life.Expectancy[52:56]-ensemble_US)^2))
+RMSE # 0.6376171
+```
+Given that the VAR and MLP models were not useless models, let’s use the combo of models to create a multivariate ensemble model to see how well it performs.
+
+
+# Ensemble: MLP & VAR United States Long Term 10 year 
+```{r}
+
+# VAR Long term 10 year United States
+# Long Term 
+UnitedStates 
+
+US_small = UnitedStates[1:46,] # first 46, predict next 10 years for forecast 
+US_small
+pop_US = US_small$Population
+gdp_US = US_small$GDP
+life_US = US_small$Life.Expectancy
+life_US
+X_US = cbind(pop_US,gdp_US,life_US)
+VAR_US = VARselect(cbind(pop_US,gdp_US,life_US),lag.max = 10, type = "both") 
+VAR_US
+fit_US =VAR(X_US,p=10,type='const') # use phi=10
+fit_US$varresult
+fit_US$p
+fit_US$K
+# summary(lsfit)
+preds_US=predict(fit_US,n.ahead=10) 
+preds_US$fcst
+life.US.f=preds_US$fcst$life_US[,1]
+life.US.f
+t=1:56 
+year=t+1960
+
+# MLP Long term 10 year United States 
+USTrain=ts(UnitedStates$Life.Expectancy[1:46])
+USVar=data.frame(GDP = ts(UnitedStates$GDP), Pop = ts(UnitedStates$Population))
+set.seed(2)
+fit=mlp(USTrain,xreg=USVar)
+f=forecast(fit,h=10,xreg=USVar)
+
+################
+f$mean # MLP long term 10 year predictions 
+life.US.f # VAR long term 10 year predictions 
+ensemble_US = (life.US.f + f$mean)/2
+ensemble_US
+################
+#Plot  
+################
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,ylim=c(50,100))
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],ensemble_US),type='o',cex=1,pch=1, col='green')
+
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005, 2016), ylim=c(75,80)) # zoom in on 10 year forecast 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],ensemble_US),type='o',cex=1,pch=1, col='green')
+
+
+plot(year,UnitedStates$Life.Expectancy,type="o",pch=20,cex=.5,xlim=c(2005, 2016), ylim=c(75,80), main='Ensemble US Short-Term 10 Year: VAR & MLP', sub='GREEN ensemble preds, BLUE mlp preds, RED var preds') # zoom in on 10 year forecast 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],ensemble_US),type='o',cex=1,pch=1, col='green')# ensemble predictions 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],f$mean),type='l',cex=1,pch=1, col='blue') # MLP predictions 
+points(year[46:56],c(UnitedStates$Life.Expectancy[46],life.US.f),type='l',cex=1,pch=1, col='red')
+################
+
+ASE = mean((UnitedStates$Life.Expectancy[47:56]-ensemble_US)^2) 
+ASE # 0.2510273
+
+RMSE=sqrt(mean((UnitedStates$Life.Expectancy[47:56]-ensemble_US)^2))
+RMSE # 0.5010262
+```
+
+The United States predictions for both short-term model performs worse as compared to the longer-term forecasts. The Shorter term model looks to be wandering higher and perhaps is not useful as the long-term model which shows the models is capture some trend around in the data to oscillate low then high around the actual predictions. 
+
+The ensemble combo of VAR and MLP did not perform well compared to either VAR or MLP models. 
+
+Looking at the shorter term forecast we see that the lowest ASE model for the US was the ensemble combo of 10th Order Var and MLP Model. 
+
+For Mexico, the most useful model at predicting life-expectancy was the 4th Order VAR model. 
+
+The ensemble combo of VAR and MLP did not perform well compared to either VAR or MLP models.
+
+Looking at the shorter term forecast we see that the lowest ASE model for the US was the ensemble combo of 10th Order Var and MLP Model.
+
+For Mexico, the most useful model at predicting life-expectancy was the multivariate ensemble (combo of 7tth Order VAR model and Multivariate Perceptron Model). 
